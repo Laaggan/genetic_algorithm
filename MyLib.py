@@ -8,8 +8,14 @@ if modulename not in sys.modules:
 import numpy
 import pandas
 
+def MyTriangularNumber(n):
+    return (n*(n+1))/2
+
+def MyInvTriangularNumber(n):
+    return int(-0.5+numpy.sqrt(2*n+1/4))
+
 def MyFun(X, Y):
-    return 2*X**2-0.5*Y**3
+    return 2*X**2-0.5*Y**3+0.01*X**6*Y-X**4*Y**2
 
 def GeneralFunction(c, X, Y):
     t1 = c[1]*X
@@ -19,6 +25,25 @@ def GeneralFunction(c, X, Y):
     t5 = c[5]*Y**2
     result = c[0] + t1 + t2 + t3 + t4 + t5
     return result
+
+#fixme: This can probably be solved much prettier by returning a function taking c as an argument
+# instead of returning a numerical value.
+# The solution is ugly(?) but it seems to work.
+def GeneralPolynomial(c, X, Y):
+    result = numpy.zeros(X.shape)
+    n = c.__len__()
+    d = MyInvTriangularNumber(n)
+    k = 0
+    for i in range(d):
+        if i == 0:
+            result += c[k]
+            k += 1
+        else:
+            for j in range(i):
+                result += c[k]*X**j*Y**(i-j)
+                k += 1
+    return result
+
 
 def SampleData(X, Y, Z, n):
     '''

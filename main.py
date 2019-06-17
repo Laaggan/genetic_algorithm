@@ -14,11 +14,18 @@ X, Y = np.meshgrid(x, y)
 Z = MyFun(X, Y)
 
 # Generating the data which we will fit the new function against
-data_set = SampleData(X, Y, Z, 10)
+# n is the size of the data set
+n = 10
+data_set = SampleData(X, Y, Z, n)
 
 # c here will ultimately be what the genetic algorithm will optimize
-c = np.random.randn(6)
-Z_approx = GeneralFunction(c, X, Y)
+# where c depends on the order of the polynomial the is to be optimized
+# if the polynomial has degree d, the corresponding polynomial will have
+# $$ c_len = \Sigma_{i=1}^d i = (d*(d+1))/2 $$
+d = 7
+c_len = int(MyTriangularNumber(d))
+c = np.random.randn(c_len)
+Z_approx = GeneralPolynomial(c, X, Y)
 
 # Setting up the plot for the target surface and the approximation surface
 f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
