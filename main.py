@@ -19,6 +19,5 @@ data_set = SampleData(X, Y, Z, 10)
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 surf = ax.plot_surface(X, Y, Z)
-#fixme: The line below does not work for some reason
-#scatter = ax.scatter(data_set)
+scatter = ax.scatter(data_set['x'], data_set['y'], data_set['z'], c='r')
 plt.show()
