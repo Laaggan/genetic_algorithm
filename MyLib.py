@@ -39,7 +39,7 @@ def GeneralPolynomial(c, X, Y):
             result += c[k]
             k += 1
         else:
-            for j in range(i):
+            for j in range(i+1):
                 result += c[k]*X**j*Y**(i-j)
                 k += 1
     return result
