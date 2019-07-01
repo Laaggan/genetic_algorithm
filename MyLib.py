@@ -71,3 +71,8 @@ def SampleData(X, Y, Z, n):
     df = pandas.DataFrame(data, columns=['x', 'y', 'z'])
 
     return df
+
+# fixme: I for now assume that I have both meshgrids
+def FitnessFunction(ZApprox, Z):
+    # I will use the mean squared error as the error function?
+    return numpy.sum((ZApprox - Z)**2)
