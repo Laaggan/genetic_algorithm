@@ -12,6 +12,7 @@ class GeneticAlgorithm:
         k is the number of bits representing our function
         '''
         assert value_range[0] < value_range[1], 'Must be a valid range'
+        assert N % 2 == 0, 'N must be a even number'
 
         self.N = N
         self.n = n
@@ -23,6 +24,7 @@ class GeneticAlgorithm:
         self.decodedPopulation = np.zeros([N, n])
         self.DecodeChromosome()
         self.fitness = np.zeros([N, 1])
+        self.current_generation = 0
 
     #fixme: Why is this not in __init__()?
     def RetrieveScalarFields(self, Z_hat, Z):
@@ -55,29 +57,65 @@ class GeneticAlgorithm:
                 transformed_value = self.value_range[0] + 2*self.value_range[1]*decoded_value
                 self.decodedPopulation[i, j] = transformed_value
 
-    def EvaluateFitness(self, X, Y, Z_hat=None):
-        # I will use the mean squared error as the error function?
-        Z_hat = GeneralPolynomial(self.decodedPopulation[0, :], X, Y)
-        try:
-            for i, Zi in enumerate(self.Z_hat):
-                self.fitness[i] = np.sum(np.power(Zi - self.Z, 2))
-        except:
-            self.fitness = np.sum(np.power(self.Z_hat - self.Z, 2))
+    def roulette_wheel_selection(self):
+        # Does it matter if it is with our without replacement?
+        standardized_fitness = self.fitness/sum(self.fitness)
+        cum_sum_fitness = np.cumsum(standardized_fitness)
+        # Assigned to -1 since that is not a valid index
+        breeders = [-1, -1]
 
-    def GeneralPolynomial(c, X, Y):
-        result = numpy.zeros(X.shape)
-        n = c.__len__()
-        d = MyInvTriangularNumber(n)
-        k = 0
-        for i in range(d):
-            if i == 0:
-                result += c[k]
-                k += 1
-            else:
-                for j in range(i + 1):
-                    result += c[k] * X ** j * Y ** (i - j)
-                    k += 1
-        return result
+        # Choose 2 chromosome that will form the next generation
+        for j in range(2):
+            selector = np.random.rand()
+            for i, f in enumerate(cum_sum_fitness):
+                if f > selector:
+                    breeders[j] = i
+                    break
+                elif i == self.N-1:
+                    breeders[j] = self.N-1
+                    break
+        return breeders
+
+    def crossover(self, c1, c2):
+        crossover_point = np.random.randint(0, len(c1))
+        c1_prime = np.zeros(c1.shape)
+        c2_prime = np.zeros(c2.shape)
+
+        c1_prime[0:crossover_point] = c1[0:crossover_point]
+        c1_prime[crossover_point:] = c2[crossover_point:]
+
+        c2_prime[0:crossover_point] = c2[0:crossover_point]
+        c2_prime[crossover_point:] = c1[crossover_point:]
+
+        return c1_prime, c2_prime
+
+    def mutation(self, c1, c2):
+        p_mut = 0.02
+        for i in range(len(c1)):
+            p1 = np.random.rand()
+            p2 = np.random.rand()
+            #fixme: code below returns signed zeros which is kinda ugly
+            if p1 < p_mut:
+                c1[i] = -1*(c1[i] - 1)
+            if p2 < p_mut:
+                c2[i] = -1*(c2[i] - 1)
+        return c1, c2
+
+
+    def create_next_generation(self, new_fitness):
+        next_generation = np.zeros(self.population.shape)
+        self.fitness = new_fitness
+        selection = self.roulette_wheel_selection()
+        c1 = self.population[selection[0], :]
+        c2 = self.population[selection[1], :]
+
+        for i in range(self.N//2):
+            c1_p, c2_p = self.crossover(c1, c2)
+            c1_p, c2_p = self.mutation(c1_p, c2_p)
+            next_generation[2 * i, :] = c1_p
+            next_generation[2 * i + 1, :] = c2_p
+
+
 
 '''
 test = GeneticAlgorithm(10, 10, 10)
