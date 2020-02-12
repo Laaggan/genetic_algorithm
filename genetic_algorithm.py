@@ -25,6 +25,7 @@ class GeneticAlgorithm:
         self.fitness = np.zeros([N, 1])
         self.current_generation = 0
         self.best_chromosome = None
+        self.best_decoded_chromosome = None
 
     def initialize_population(self):
         '''
@@ -108,6 +109,7 @@ class GeneticAlgorithm:
         best_ind = np.argmax(self.fitness)
         self.best_fitness = np.max(self.fitness)
         self.best_chromosome = self.population[best_ind, :]
+        self.best_decoded_chromosome = self.decoded_population[best_ind, :]
 
         # Implementation of elitism
         # Switch the first chromosome to the best from the previous generation
