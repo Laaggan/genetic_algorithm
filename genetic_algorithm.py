@@ -1,5 +1,4 @@
 import numpy as np
-from MyLib import *
 
 class GeneticAlgorithm:
     def __init__(self, N, n, k, value_range=(-10, 10)):
@@ -20,23 +19,14 @@ class GeneticAlgorithm:
         self.value_range = value_range
 
         self.population = np.zeros([N, k*n])
-        self.InitializePopulation()
-        self.decodedPopulation = np.zeros([N, n])
-        self.DecodeChromosome()
+        self.initialize_population()
+        self.decoded_population = np.zeros([N, n])
+        self.decode_chromosome()
         self.fitness = np.zeros([N, 1])
         self.current_generation = 0
+        self.best_chromosome = None
 
-    #fixme: Why is this not in __init__()?
-    def RetrieveScalarFields(self, Z_hat, Z):
-        '''
-        Help function to more easily evaluate fitness
-        :param Z_hat:
-        The values approximated by the chromosome
-        :return:
-        '''
-        self.Z_hat = Z_hat
-
-    def InitializePopulation(self):
+    def initialize_population(self):
         '''
         Randomly initializes the population with a binary encoding scheme with equal probability of a one or a zero
         :return:
@@ -46,20 +36,19 @@ class GeneticAlgorithm:
                 if np.random.rand() < 0.5:
                     self.population[i, j] = 1
 
-    def DecodeChromosome(self):
+    def decode_chromosome(self):
         for i in range(self.N):
             chromosome = self.population[i, :]
             for j in range(self.n):
                 decoded_value = 0
                 variable = chromosome[j*self.k:((j+1)*self.k-1)]
                 for l, x in enumerate(variable):
-                    decoded_value += 2**(-(l+1))*x
+                    decoded_value += 2**(-l)*x
                 transformed_value = self.value_range[0] + 2*self.value_range[1]*decoded_value
-                self.decodedPopulation[i, j] = transformed_value
+                self.decoded_population[i, j] = transformed_value
 
     def roulette_wheel_selection(self):
-        # Does it matter if it is with our without replacement?
-        standardized_fitness = self.fitness/sum(self.fitness)
+        standardized_fitness = self.fitness/np.sum(self.fitness)
         cum_sum_fitness = np.cumsum(standardized_fitness)
         # Assigned to -1 since that is not a valid index
         breeders = [-1, -1]
@@ -101,9 +90,9 @@ class GeneticAlgorithm:
                 c2[i] = -1*(c2[i] - 1)
         return c1, c2
 
-
-    def create_next_generation(self, new_fitness):
-        next_generation = np.zeros(self.population.shape)
+    def next_generation(self, new_fitness):
+        self.decode_chromosome()
+        new_generation = np.zeros(self.population.shape)
         self.fitness = new_fitness
         selection = self.roulette_wheel_selection()
         c1 = self.population[selection[0], :]
@@ -112,14 +101,16 @@ class GeneticAlgorithm:
         for i in range(self.N//2):
             c1_p, c2_p = self.crossover(c1, c2)
             c1_p, c2_p = self.mutation(c1_p, c2_p)
-            next_generation[2 * i, :] = c1_p
-            next_generation[2 * i + 1, :] = c2_p
+            new_generation[2*i, :] = c1_p
+            new_generation[2*i + 1, :] = c2_p
 
+        # Elitism
+        best_ind = np.argmax(self.fitness)
+        self.best_fitness = np.max(self.fitness)
+        self.best_chromosome = self.population[best_ind, :]
 
-
-'''
-test = GeneticAlgorithm(10, 10, 10)
-test.InitializePopulation()
-test.DecodeChromosome()
-print(test.decodedPopulation)
-'''
+        # Implementation of elitism
+        # Switch the first chromosome to the best from the previous generation
+        new_generation[0, :] = self.best_chromosome
+        self.population = new_generation
+        self.current_generation += 1
