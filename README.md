@@ -6,7 +6,7 @@ using python, using roulette wheel selection, crossover and mutation.
 # Task
 An arbitrary bivariate function was constructed which the genetic algorithm will try to find the parameters of.
 
-<img src="https://render.githubusercontent.com/render/math?math=f(x,y) = 2x^2-0.5y^3 + 0.01x^6 y-x^4y^2">
+<img src="https://render.githubusercontent.com/render/math?math=f(x,y) = 2x^{2}-0.5y^{3}+0.01x^{6}y-x^{4}y^{2}">
 
 This surface can be seen as the orange surface in the gif below.
 
